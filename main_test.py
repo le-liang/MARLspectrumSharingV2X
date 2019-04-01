@@ -3,6 +3,8 @@ import random
 import scipy
 import scipy.io
 import numpy as np
+from numpy import linalg as LA
+import sklearn.cluster as cluster
 import tensorflow as tf
 import Environment_marl_test
 import os
@@ -241,6 +243,34 @@ def print_weight(sess, target=False):
         print(sess.run(w_1_p[0, 0:4]))
 
 
+def spectral_clustering(A, max_cluster_number):
+    #  number is B how many clusters should be chosen
+    M = np.sum(A, axis=1)
+    L = np.diag(M) - A
+    M_norm = M ** (-0.5)
+    L_norm = np.identity(len(M_norm)) - np.dot(np.dot(np.diag(M_norm), A), np.diag(M_norm))
+    w, v = LA.eig(L_norm)
+    delta_w = w[2:max_cluster_number] - w[1:max_cluster_number - 1]
+    cluster_number = np.argmax(delta_w) + 1
+    kmeans = cluster.KMeans(n_clusters=cluster_number, random_state=0).fit(v[0:cluster_number].T)
+    return cluster_number, kmeans.labels_
+
+
+def Largest_Remaining(votes, seats):
+    vote_in_all = np.sum(votes)
+    Hare_Quota = vote_in_all / seats
+    Auto_seat = np.floor(votes / Hare_Quota)
+    remaining_seat = int(seats - np.sum(Auto_seat))
+    remaining = votes / Hare_Quota - np.floor(votes / Hare_Quota)
+    idx_add = np.argsort(-remaining)
+    Auto_seat[idx_add[0:remaining_seat]] += 1
+    return Auto_seat
+
+
+def dB2sig(a):
+    return 10 ** (a / 10)
+
+
 # --------------------------------------------------------------
 agents = []
 sesses = []
@@ -271,19 +301,23 @@ if IS_TEST:
 
     V2I_rate_list = []
     V2V_success_list = []
+
     V2I_rate_list_rand = []
     V2V_success_list_rand = []
+
     V2I_rate_list_sarl = []
     V2V_success_list_sarl = []
+
+    V2I_rate_list_dpra = []
+    V2V_success_list_dpra = []
 
     rate_marl = np.zeros([n_episode_test, n_step_per_episode, n_veh, n_neighbor])
     rate_rand = np.zeros([n_episode_test, n_step_per_episode, n_veh, n_neighbor])
     demand_marl = env.demand_size * np.ones([n_episode_test, n_step_per_episode+1, n_veh, n_neighbor])
     demand_rand = env.demand_size * np.ones([n_episode_test, n_step_per_episode+1, n_veh, n_neighbor])
-    power_rand = np.zeros([n_episode_test, n_step_per_episode, n_veh, n_neighbor])
 
     action_all_testing_sarl = np.zeros([n_veh, n_neighbor, 2], dtype='int32')
-
+    action_all_testing_dpra = np.zeros([n_veh, n_neighbor, 2], dtype='int32')
     for idx_episode in range(n_episode_test):
         print('----- Episode', idx_episode, '-----')
 
@@ -304,9 +338,15 @@ if IS_TEST:
         env.individual_time_limit_sarl = env.time_slow * np.ones((env.n_Veh, env.n_neighbor))
         env.active_links_sarl = np.ones((env.n_Veh, env.n_neighbor), dtype='bool')
 
+        env.demand_dpra = env.demand_size * np.ones((env.n_Veh, env.n_neighbor))
+        env.individual_time_limit_dpra = env.time_slow * np.ones((env.n_Veh, env.n_neighbor))
+        env.active_links_dpra = np.ones((env.n_Veh, env.n_neighbor), dtype='bool')
+
         V2I_rate_per_episode = []
         V2I_rate_per_episode_rand = []
         V2I_rate_per_episode_sarl = []
+        V2I_rate_per_episode_dpra = []
+
         for test_step in range(n_step_per_episode):
             # trained models
             action_all_testing = np.zeros([n_veh, n_neighbor, 2], dtype='int32')
@@ -320,6 +360,7 @@ if IS_TEST:
             action_temp = action_all_testing.copy()
             V2I_rate, V2V_success, V2V_rate = env.act_for_testing(action_temp)
             V2I_rate_per_episode.append(np.sum(V2I_rate))  # sum V2I rate in bps
+
             rate_marl[idx_episode, test_step,:,:] = V2V_rate
             demand_marl[idx_episode, test_step+1,:,:] = env.demand
 
@@ -327,9 +368,9 @@ if IS_TEST:
             action_rand = np.zeros([n_veh, n_neighbor, 2], dtype='int32')
             action_rand[:, :, 0] = np.random.randint(0, n_RB, [n_veh, n_neighbor]) # band
             action_rand[:, :, 1] = np.random.randint(0, len(env.V2V_power_dB_List), [n_veh, n_neighbor]) # power
-
             V2I_rate_rand, V2V_success_rand, V2V_rate_rand = env.act_for_testing_rand(action_rand)
             V2I_rate_per_episode_rand.append(np.sum(V2I_rate_rand))  # sum V2I rate in bps
+
             rate_rand[idx_episode, test_step, :, :] = V2V_rate_rand
             demand_rand[idx_episode, test_step+1,:,:] = env.demand_rand
 
@@ -345,22 +386,53 @@ if IS_TEST:
             V2I_rate_sarl, V2V_success_sarl, V2V_rate_sarl = env.act_for_testing_sarl(action_temp_sarl)
             V2I_rate_per_episode_sarl.append(np.sum(V2I_rate_sarl))  # sum V2I rate in bps
 
+            # SINR maximizing Distributed algorithms, deprecated for undesirable performance.
+            # As V2I upper bound only
+            signal = -env.V2V_channels_with_fastfading[i, env.vehicles[i].destinations[j], :]
+            interference = env.V2V_Interference_all_dpra[i,j, :]
+            band_selection = np.argmin(interference)
+
+            action_all_testing_dpra[i, j, 0] = band_selection  # chosen RB
+            action_all_testing_dpra[i, j, 1] = 3  # power level, fixed to 23 dBm
+
+            action_temp_dpra = action_all_testing_dpra.copy()
+            V2I_rate_dpra, V2V_success_dpra, V2V_rate_dpra = env.act_for_testing_dpra(action_temp_dpra)
+            V2I_rate_per_episode_dpra.append(np.sum(V2I_rate_dpra))  # sum V2I rate in bps
+
+            # V2V Upper bound only
+            # signal = -env.V2V_channels_with_fastfading[i, env.vehicles[i].destinations[j], :]
+            # interference = env.V2V_Interference_all_dpra[i, j, :]
+            # band_selection = np.argmin(interference)
+            #
+            # action_all_testing_dpra[i, j, 0] = band_selection  # chosen RB
+            # action_all_testing_dpra[i, j, 1] = 3  # power level, fixed to 23 dBm
+            #
+            # action_temp_dpra = action_all_testing_dpra.copy()
+            # V2I_rate_dpra, V2V_success_dpra, V2V_rate_dpra = env.act_for_testing_dpra(action_temp_dpra)
+            # V2I_rate_per_episode_dpra.append(np.sum(V2I_rate_dpra))  # sum V2I rate in bps
+
             # update the environment and compute interference
             env.renew_channels_fastfading()
             env.Compute_Interference(action_temp)
             env.Compute_Interference_sarl(action_temp_sarl)
+            env.Compute_Interference_dpra(action_temp_dpra)
 
             if test_step == n_step_per_episode - 1:
                 V2V_success_list.append(V2V_success)
                 V2V_success_list_rand.append(V2V_success_rand)
                 V2V_success_list_sarl.append(V2V_success_sarl)
+                V2V_success_list_dpra.append(V2V_success_dpra)
 
         V2I_rate_list.append(np.mean(V2I_rate_per_episode))
         V2I_rate_list_rand.append(np.mean(V2I_rate_per_episode_rand))
         V2I_rate_list_sarl.append(np.mean(V2I_rate_per_episode_sarl))
+        V2I_rate_list_dpra.append(np.mean(V2I_rate_per_episode_dpra))
 
-        print('marl', round(np.average(V2I_rate_per_episode), 2), 'sarl', round(np.average(V2I_rate_per_episode_sarl), 2), 'rand', round(np.average(V2I_rate_per_episode_rand), 2))
-        print('marl', V2V_success_list[idx_episode], 'sarl', V2V_success_list_sarl[idx_episode], 'rand', V2V_success_list_rand[idx_episode])
+        print('marl', round(np.average(V2I_rate_per_episode), 2), 'sarl', round(np.average(V2I_rate_per_episode_sarl), 2), 'rand', round(np.average(V2I_rate_per_episode_rand), 2), 'dpra', round(np.average(V2I_rate_per_episode_dpra), 2))
+        print('marl', V2V_success_list[idx_episode], 'sarl', V2V_success_list_sarl[idx_episode], 'rand', V2V_success_list_rand[idx_episode], 'dpra', V2V_success_list_dpra[idx_episode])
+
+        # print('marl', round(np.average(V2I_rate_per_episode), 2), 'sarl', round(np.average(V2I_rate_per_episode_sarl), 2), 'rand', round(np.average(V2I_rate_per_episode_rand), 2))
+        # print('marl', V2V_success_list[idx_episode], 'sarl', V2V_success_list_sarl[idx_episode], 'rand', V2V_success_list_rand[idx_episode])
 
         # print(round(np.average(V2I_rate_per_episode), 2), 'rand', round(np.average(V2I_rate_per_episode_rand), 2))
         # print(V2V_success_list[idx_episode], 'rand', V2V_success_list_rand[idx_episode])
@@ -380,6 +452,12 @@ if IS_TEST:
     print('Sum V2I rate:', round(np.average(V2I_rate_list_rand), 2), 'Mbps')
     print('Pr(V2V success):', round(np.average(V2V_success_list_rand), 4))
 
+    print('-------- DPRA -------------')
+    print('n_veh:', n_veh, ', n_neighbor:', n_neighbor)
+    print('Sum V2I rate:', round(np.average(V2I_rate_list_dpra), 2), 'Mbps')
+    print('Pr(V2V success):', round(np.average(V2V_success_list_dpra), 4))
+
+
     with open("Data.txt", "a") as f:
         f.write('-------- marl, ' + label + '------\n')
         f.write('n_veh: ' + str(n_veh) + ', n_neighbor: ' + str(n_neighbor) + '\n')
@@ -392,6 +470,9 @@ if IS_TEST:
         f.write('--------random ------------\n')
         f.write('Rand Sum V2I rate: ' + str(round(np.average(V2I_rate_list_rand), 5)) + ' Mbps\n')
         f.write('Rand Pr(V2V): ' + str(round(np.average(V2V_success_list_rand), 5)) + '\n')
+        f.write('--------DPRA ------------\n')
+        f.write('Rand Sum V2I rate: ' + str(round(np.average(V2I_rate_list_dpra), 5)) + ' Mbps\n')
+        f.write('Rand Pr(V2V): ' + str(round(np.average(V2V_success_list_dpra), 5)) + '\n')
 
     current_dir = os.path.dirname(os.path.realpath(__file__))
     marl_path = os.path.join(current_dir, "model/" + label + '/rate_marl.mat')
@@ -403,9 +484,6 @@ if IS_TEST:
     scipy.io.savemat(demand_marl_path, {'demand_marl': demand_marl})
     demand_rand_path = os.path.join(current_dir, "model/" + label + '/demand_rand.mat')
     scipy.io.savemat(demand_rand_path, {'demand_rand': demand_rand})
-
-    power_rand_path = os.path.join(current_dir, "model/" + label + '/power_rand.mat')
-    scipy.io.savemat(power_rand_path, {'power_rand': power_rand})
 
 
 # close sessions
