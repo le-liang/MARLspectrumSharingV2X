@@ -528,7 +528,7 @@ class Environ:
         # ------------ Compute V2V rate -------------------------
         V2V_Interference = np.zeros((len(self.vehicles), self.n_neighbor))
         V2V_Signal = np.zeros((len(self.vehicles), self.n_neighbor))
-        actions[(np.logical_not(self.active_links_rand))] = -1
+        actions[(np.logical_not(self.active_links_dpra))] = -1
         for i in range(self.n_RB):  # scanning all bands
             indexes = np.argwhere(actions == i)  # find spectrum-sharing V2Vs
             for j in range(len(indexes)):
@@ -553,6 +553,49 @@ class Environ:
 
         self.individual_time_limit_dpra -= self.time_fast
         self.active_links_dpra[np.multiply(self.active_links_dpra, self.demand_dpra <= 0)] = 0 # transmission finished, turned to "inactive"
+
+        return V2I_Rate, V2V_Rate
+
+    def Compute_Rate(self, actions_power):
+        """ for random baseline computation """
+
+        actions = actions_power[:, :, 0]  # the channel_selection_part
+        power_selection = actions_power[:, :, 1]  # power selection
+
+        # ------------ Compute V2I rate --------------------
+        V2I_Interference = np.zeros(self.n_RB)  # V2I interference
+        for i in range(len(self.vehicles)):
+            for j in range(self.n_neighbor):
+                if not self.active_links_dpra[i, j]:
+                    continue
+                V2I_Interference[actions[i][j]] += 10 ** ((self.V2V_power_dB_List[power_selection[i, j]] - self.V2I_channels_with_fastfading[i, actions[i, j]]
+                                                           + self.vehAntGain + self.bsAntGain - self.bsNoiseFigure) / 10)
+        V2I_Interference_dpra = V2I_Interference + self.sig2
+        V2I_Signals = 10 ** ((self.V2I_power_dB - self.V2I_channels_with_fastfading.diagonal() + self.vehAntGain + self.bsAntGain - self.bsNoiseFigure) / 10)
+        V2I_Rate = np.log2(1 + np.divide(V2I_Signals, V2I_Interference_dpra))
+
+        # ------------ Compute V2V rate -------------------------
+        V2V_Interference = np.zeros((len(self.vehicles), self.n_neighbor))
+        V2V_Signal = np.zeros((len(self.vehicles), self.n_neighbor))
+        actions[(np.logical_not(self.active_links_dpra))] = -1
+        for i in range(self.n_RB):  # scanning all bands
+            indexes = np.argwhere(actions == i)  # find spectrum-sharing V2Vs
+            for j in range(len(indexes)):
+                receiver_j = self.vehicles[indexes[j, 0]].destinations[indexes[j, 1]]
+                V2V_Signal[indexes[j, 0], indexes[j, 1]] = 10 ** ((self.V2V_power_dB_List[power_selection[indexes[j, 0], indexes[j, 1]]]
+                                                                   - self.V2V_channels_with_fastfading[indexes[j][0], receiver_j, i] + 2 * self.vehAntGain - self.vehNoiseFigure) / 10)
+                # V2I links interference to V2V links
+                V2V_Interference[indexes[j, 0], indexes[j, 1]] = 10 ** ((self.V2I_power_dB - self.V2V_channels_with_fastfading[i, receiver_j, i] + 2 * self.vehAntGain - self.vehNoiseFigure) / 10)
+
+                #  V2V interference
+                for k in range(j + 1, len(indexes)):  # spectrum-sharing V2Vs
+                    receiver_k = self.vehicles[indexes[k][0]].destinations[indexes[k][1]]
+                    V2V_Interference[indexes[j, 0], indexes[j, 1]] += 10 ** ((self.V2V_power_dB_List[power_selection[indexes[k, 0], indexes[k, 1]]]
+                                                                              - self.V2V_channels_with_fastfading[indexes[k][0]][receiver_j][i] + 2 * self.vehAntGain - self.vehNoiseFigure) / 10)
+                    V2V_Interference[indexes[k, 0], indexes[k, 1]] += 10 ** ((self.V2V_power_dB_List[power_selection[indexes[j, 0], indexes[j, 1]]]
+                                                                              - self.V2V_channels_with_fastfading[indexes[j][0]][receiver_k][i] + 2 * self.vehAntGain - self.vehNoiseFigure) / 10)
+        V2V_Interference_dpra = V2V_Interference + self.sig2
+        V2V_Rate = np.log2(1 + np.divide(V2V_Signal, V2V_Interference_dpra))
 
         return V2I_Rate, V2V_Rate
 
