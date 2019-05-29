@@ -519,7 +519,7 @@ class Environ:
         return V2I_Rate, V2V_Rate
 
     def Compute_Rate(self, actions_power):
-        """ for random baseline computation """
+        """ Compute V2I and V2V rates for centralized maxV2V  """
 
         actions = actions_power[:, :, 0]  # the channel_selection_part
         power_selection = actions_power[:, :, 1]  # power selection
