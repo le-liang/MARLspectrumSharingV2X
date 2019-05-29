@@ -29,7 +29,8 @@ right_lanes = [i/2.0 for i in [433-3.5-3.5/2,433-3.5/2,866-3.5-3.5/2,866-3.5/2,1
 width = 750/2
 height = 1298/2
 
-IS_TRAIN = 0 # hard-coded to 0, only for testing
+# This main file is for testing only
+IS_TRAIN = 0 # hard-coded to 0
 IS_TEST = 1-IS_TRAIN
 
 label = 'marl_model'
