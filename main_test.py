@@ -3,8 +3,6 @@ import random
 import scipy
 import scipy.io
 import numpy as np
-from numpy import linalg as LA
-import sklearn.cluster as cluster
 import tensorflow as tf
 import Environment_marl_test
 import os
@@ -34,9 +32,8 @@ height = 1298/2
 IS_TRAIN = 0 # hard-coded to 0, only for testing
 IS_TEST = 1-IS_TRAIN
 
-label = 'marl-1234-V2Vobj-12-3-SeparateLargeScale'
-# label_sarl = 'sarl-1234-mixobj-12-9-lambdaP01'
-label_sarl = 'sarl-1234-V2Vobj-12-10'
+label = 'marl_model'
+label_sarl = 'sarl_model'
 
 n_veh = 4
 n_neighbor = 1
@@ -358,76 +355,71 @@ if IS_TEST:
             V2I_rate_sarl, V2V_success_sarl, V2V_rate_sarl = env.act_for_testing_sarl(action_temp_sarl)
             V2I_rate_per_episode_sarl.append(np.sum(V2I_rate_sarl))  # sum V2I rate in bps
 
-            # SINR maximizing Distributed algorithms, deprecated for undesirable performance.
-            # Used as V2I upper bound only
-            signal = -env.V2V_channels_with_fastfading[i, env.vehicles[i].destinations[j], :]
-            interference = env.V2V_Interference_all_dpra[i,j, :]
-            band_selection = np.argmin(interference)
-
-            action_all_testing_dpra[i, j, 0] = band_selection  # chosen RB
-            action_all_testing_dpra[i, j, 1] = 3  # power level, fixed to 23 dBm
-
-            action_temp_dpra = action_all_testing_dpra.copy()
-            V2I_rate_dpra, V2V_success_dpra, V2V_rate_dpra = env.act_for_testing_dpra(action_temp_dpra)
-            V2I_rate_per_episode_dpra.append(np.sum(V2I_rate_dpra))  # sum V2I rate in bps
-
-            # V2V Upper bound only
-            # The following applies to n_veh = 4 and n_neighbor = 1 only
-            # action_dpra = np.zeros([n_veh, n_neighbor, 2], dtype='int32')
-            # # n_power_level = len(env.V2V_power_dB_List)
-            # n_power_level = 1
-            # store_action = np.zeros([(n_RB*n_power_level)**4, 4])
-            # rate_all_dpra = []
-            # t = 0
-            # # for i in range(n_RB*len(env.V2V_power_dB_List)):\
-            # for i in range(n_RB):
-            #     for j in range(n_RB):
-            #         for m in range(n_RB):
-            #             for n in range(n_RB):
-            #                 action_dpra[0, 0, 0] = i % n_RB
-            #                 action_dpra[0, 0, 1] = int(np.floor(i / n_RB))  # power level
+            # # Used as V2I upper bound only, no V2V transmission
+            # action_all_testing_dpra[i, j, 0] = 0  # chosen RB
+            # action_all_testing_dpra[i, j, 1] = 3  # power level, fixed to -100 dBm, no V2V transmission
             #
-            #                 action_dpra[1, 0, 0] = j % n_RB
-            #                 action_dpra[1, 0, 1] = int(np.floor(j / n_RB))  # power level
-            #
-            #                 action_dpra[2, 0, 0] = m % n_RB
-            #                 action_dpra[2, 0, 1] = int(np.floor(m / n_RB))  # power level
-            #
-            #                 action_dpra[3, 0, 0] = n % n_RB
-            #                 action_dpra[3, 0, 1] = int(np.floor(n / n_RB))  # power level
-            #
-            #                 action_temp_findMax = action_dpra.copy()
-            #                 V2I_rate_findMax, V2V_rate_findMax = env.Compute_Rate(action_temp_findMax)
-            #                 rate_all_dpra.append(np.sum(V2V_rate_findMax))
-            #
-            #                 store_action[t, :] = [i,j,m,n]
-            #                 t += 1
-            #
-            # i = store_action[np.argmax(rate_all_dpra), 0]
-            # j = store_action[np.argmax(rate_all_dpra), 1]
-            # m = store_action[np.argmax(rate_all_dpra), 2]
-            # n = store_action[np.argmax(rate_all_dpra), 3]
-            #
-            # action_testing_dpra = np.zeros([n_veh, n_neighbor, 2], dtype='int32')
-            #
-            # action_testing_dpra[0, 0, 0] = i % n_RB
-            # action_testing_dpra[0, 0, 1] = int(np.floor(i / n_RB))  # power level
-            #
-            # action_testing_dpra[1, 0, 0] = j % n_RB
-            # action_testing_dpra[1, 0, 1] = int(np.floor(j / n_RB))  # power level
-            #
-            # action_testing_dpra[2, 0, 0] = m % n_RB
-            # action_testing_dpra[2, 0, 1] = int(np.floor(m / n_RB))  # power level
-            #
-            # action_testing_dpra[3, 0, 0] = n % n_RB
-            # action_testing_dpra[3, 0, 1] = int(np.floor(n / n_RB))  # power level
-            #
-            # V2I_rate_findMax, V2V_rate_findMax = env.Compute_Rate(action_testing_dpra)
-            # check_sum = np.sum(V2V_rate_findMax)
-            #
-            # action_temp_dpra = action_testing_dpra.copy()
+            # action_temp_dpra = action_all_testing_dpra.copy()
             # V2I_rate_dpra, V2V_success_dpra, V2V_rate_dpra = env.act_for_testing_dpra(action_temp_dpra)
             # V2I_rate_per_episode_dpra.append(np.sum(V2I_rate_dpra))  # sum V2I rate in bps
+
+            # # V2V Upper bound only, centralized maxV2V
+            # The following applies to n_veh = 4 and n_neighbor = 1 only
+            action_dpra = np.zeros([n_veh, n_neighbor, 2], dtype='int32')
+            # n_power_level = len(env.V2V_power_dB_List)
+            n_power_level = 1
+            store_action = np.zeros([(n_RB*n_power_level)**4, 4])
+            rate_all_dpra = []
+            t = 0
+            # for i in range(n_RB*len(env.V2V_power_dB_List)):\
+            for i in range(n_RB):
+                for j in range(n_RB):
+                    for m in range(n_RB):
+                        for n in range(n_RB):
+                            action_dpra[0, 0, 0] = i % n_RB
+                            action_dpra[0, 0, 1] = int(np.floor(i / n_RB))  # power level
+
+                            action_dpra[1, 0, 0] = j % n_RB
+                            action_dpra[1, 0, 1] = int(np.floor(j / n_RB))  # power level
+
+                            action_dpra[2, 0, 0] = m % n_RB
+                            action_dpra[2, 0, 1] = int(np.floor(m / n_RB))  # power level
+
+                            action_dpra[3, 0, 0] = n % n_RB
+                            action_dpra[3, 0, 1] = int(np.floor(n / n_RB))  # power level
+
+                            action_temp_findMax = action_dpra.copy()
+                            V2I_rate_findMax, V2V_rate_findMax = env.Compute_Rate(action_temp_findMax)
+                            rate_all_dpra.append(np.sum(V2V_rate_findMax))
+
+                            store_action[t, :] = [i,j,m,n]
+                            t += 1
+
+            i = store_action[np.argmax(rate_all_dpra), 0]
+            j = store_action[np.argmax(rate_all_dpra), 1]
+            m = store_action[np.argmax(rate_all_dpra), 2]
+            n = store_action[np.argmax(rate_all_dpra), 3]
+
+            action_testing_dpra = np.zeros([n_veh, n_neighbor, 2], dtype='int32')
+
+            action_testing_dpra[0, 0, 0] = i % n_RB
+            action_testing_dpra[0, 0, 1] = int(np.floor(i / n_RB))  # power level
+
+            action_testing_dpra[1, 0, 0] = j % n_RB
+            action_testing_dpra[1, 0, 1] = int(np.floor(j / n_RB))  # power level
+
+            action_testing_dpra[2, 0, 0] = m % n_RB
+            action_testing_dpra[2, 0, 1] = int(np.floor(m / n_RB))  # power level
+
+            action_testing_dpra[3, 0, 0] = n % n_RB
+            action_testing_dpra[3, 0, 1] = int(np.floor(n / n_RB))  # power level
+
+            V2I_rate_findMax, V2V_rate_findMax = env.Compute_Rate(action_testing_dpra)
+            check_sum = np.sum(V2V_rate_findMax)
+
+            action_temp_dpra = action_testing_dpra.copy()
+            V2I_rate_dpra, V2V_success_dpra, V2V_rate_dpra = env.act_for_testing_dpra(action_temp_dpra)
+            V2I_rate_per_episode_dpra.append(np.sum(V2I_rate_dpra))  # sum V2I rate in bps
 
             # update the environment and compute interference
             env.renew_channels_fastfading()

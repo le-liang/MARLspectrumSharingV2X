@@ -118,13 +118,11 @@ class Environ:
         self.n_RB = n_veh
         self.n_Veh = n_veh
         self.n_neighbor = n_neighbor
-        # self.velocity = 60 / 3.6  # in m/s
         self.time_fast = 0.001
         self.time_slow = 0.1  # update slow fading/vehicle position every 100 ms
-        # self.max_tx_times = int(self.time_slow / self.time_fast)  # numbers of transmissions during 0.1 s
         self.bandwidth = int(1e6)  # bandwidth per RB, 1 MHz
         # self.bandwidth = 1500
-        self.demand_size = int((4 * 190 + 300) * 8 * 1)  # V2V payload: 1060 Bytes every 100 ms
+        self.demand_size = int((4 * 190 + 300) * 8 * 2)  # V2V payload: 1060 Bytes every 100 ms
         # self.demand_size = 20
 
         self.V2V_Interference_all = np.zeros((self.n_Veh, self.n_neighbor, self.n_RB)) + self.sig2
@@ -156,42 +154,6 @@ class Environ:
         self.V2V_Shadowing = np.random.normal(0, 3, [len(self.vehicles), len(self.vehicles)])
         self.V2I_Shadowing = np.random.normal(0, 8, len(self.vehicles))
         self.delta_distance = np.asarray([c.velocity*self.time_slow for c in self.vehicles])
-        # self.renew_channel()
-        # self.renew_channels_fastfading()
-
-        # ind = np.random.randint(0, len(self.down_lanes))
-        #
-        # # vehicle distribution follows Poisson per 3GPP TR 36.885
-        # coord1 = np.random.uniform(0, self.height, np.random.poisson(self.height / (2.5 * self.velocity), 1))
-        # for i in range(n):
-        #     start_position = [self.down_lanes[ind], sorted(coord1)[i]]
-        #     start_direction = 'd'
-        #     self.add_new_vehicles(start_position, start_direction, self.velocity)
-        #
-        # coord2 = np.random.uniform(0, self.height, np.random.poisson(self.height / (2.5 * self.velocity), 1))
-        # for i in range(n):
-        #     start_position = [self.up_lanes[ind], sorted(coord2)[i]]
-        #     start_direction = 'u'
-        #     self.add_new_vehicles(start_position, start_direction, self.velocity)
-        #
-        # coord3 = np.random.uniform(0, self.width, np.random.poisson(self.width / (2.5 * self.velocity), 1))
-        # for i in range(n):
-        #     start_position = [sorted(coord3)[i], self.left_lanes[ind]]
-        #     start_direction = 'l'
-        #     self.add_new_vehicles(start_position, start_direction, self.velocity)
-        #
-        # coord4 = np.random.uniform(0, self.width, np.random.poisson(self.width / (2.5 * self.velocity), 1))
-        # for i in range(n):
-        #     start_position = [sorted(coord4)[i], self.right_lanes[ind]]
-        #     start_direction = 'r'
-        #     self.add_new_vehicles(start_position, start_direction, self.velocity)
-        #
-        # self.n_veh = len(self.vehicles)
-        #
-        # self.V2V_Shadowing = np.random.normal(0, 3, [len(self.vehicles), len(self.vehicles)])
-        # self.V2I_Shadowing = np.random.normal(0, 8, len(self.vehicles))
-        # self.delta_distance = np.asarray([c.velocity * self.time_fast for c in self.vehicles])
-        # self.renew_channels_fastfading()
 
     def renew_positions(self):
         # ===============

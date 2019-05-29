@@ -29,10 +29,10 @@ right_lanes = [i/2.0 for i in [433-3.5-3.5/2,433-3.5/2,866-3.5-3.5/2,866-3.5/2,1
 width = 750/2
 height = 1298/2
 
-IS_TRAIN = 0
+IS_TRAIN = 1
 IS_TEST = 1-IS_TRAIN
 
-label = 'marl-1234-V2Vobj-12-3-SeparateLargeScale'
+label = 'marl_model'
 
 n_veh = 4
 n_neighbor = 1
@@ -287,9 +287,6 @@ if IS_TRAIN:
                         update_target_q_network(sesses[i*n_neighbor+j])
                         if i == 0 and j == 0:
                             print('Update target Q network...')
-
-    # Each episode starts with the same all zero interference albeit different fast fading channels in training
-    # env.V2V_Interference_all = np.zeros((env.n_Veh, env.n_neighbor, env.n_RB)) + env.sig2
 
     print('Training Done. Saving models...')
     for i in range(n_veh):
