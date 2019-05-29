@@ -1,0 +1,5 @@
+model_checkpoint_path: "/home/haoyye/Documents/Le/marl_1234_v1202/model/marl-1234-V2Vobj-12-3-SeparateLargeScale/agent_3"
+all_model_checkpoint_paths: "/home/haoyye/Documents/Le/marl_1234_v1202/model/marl-1234-V2Vobj-12-3-SeparateLargeScale/agent_0"
+all_model_checkpoint_paths: "/home/haoyye/Documents/Le/marl_1234_v1202/model/marl-1234-V2Vobj-12-3-SeparateLargeScale/agent_1"
+all_model_checkpoint_paths: "/home/haoyye/Documents/Le/marl_1234_v1202/model/marl-1234-V2Vobj-12-3-SeparateLargeScale/agent_2"
+all_model_checkpoint_paths: "/home/haoyye/Documents/Le/marl_1234_v1202/model/marl-1234-V2Vobj-12-3-SeparateLargeScale/agent_3"

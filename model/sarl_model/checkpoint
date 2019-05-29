@@ -1,0 +1,2 @@
+model_checkpoint_path: "/home/haoyye/Documents/Le/marl_1234_v1210/model/sarl-1234-V2Vobj-12-10/agent"
+all_model_checkpoint_paths: "/home/haoyye/Documents/Le/marl_1234_v1210/model/sarl-1234-V2Vobj-12-10/agent"
