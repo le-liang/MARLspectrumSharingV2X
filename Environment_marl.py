@@ -107,7 +107,6 @@ class Environ:
 
         self.V2I_power_dB = 23  # dBm
         self.V2V_power_dB_List = [23, 15, 5, -100]  # the power levels
-        self.V2I_power = 10 ** (self.V2I_power_dB)
         self.sig2_dB = -114
         self.bsAntGain = 8
         self.bsNoiseFigure = 5
