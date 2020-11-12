@@ -343,7 +343,7 @@ class Environ:
                 V2V_Signal[indexes[j, 0], indexes[j, 1]] = 10 ** ((self.V2V_power_dB_List[power_selection[indexes[j, 0], indexes[j, 1]]]
                                                                    - self.V2V_channels_with_fastfading[indexes[j][0], receiver_j, i] + 2 * self.vehAntGain - self.vehNoiseFigure) / 10)
                 # V2I links interference to V2V links
-                V2V_Interference[indexes[j, 0], indexes[j, 1]] = 10 ** ((self.V2I_power_dB - self.V2V_channels_with_fastfading[i, receiver_j, i] + 2 * self.vehAntGain - self.vehNoiseFigure) / 10)
+                V2V_Interference[indexes[j, 0], indexes[j, 1]] += 10 ** ((self.V2I_power_dB - self.V2V_channels_with_fastfading[i, receiver_j, i] + 2 * self.vehAntGain - self.vehNoiseFigure) / 10)
 
                 #  V2V interference
                 for k in range(j + 1, len(indexes)):  # spectrum-sharing V2Vs
@@ -397,7 +397,7 @@ class Environ:
                 V2V_Signal[indexes[j, 0], indexes[j, 1]] = 10 ** ((self.V2V_power_dB_List[power_selection[indexes[j, 0], indexes[j, 1]]]
                                                                    - self.V2V_channels_with_fastfading[indexes[j][0], receiver_j, i] + 2 * self.vehAntGain - self.vehNoiseFigure) / 10)
                 # V2I links interference to V2V links
-                V2V_Interference[indexes[j, 0], indexes[j, 1]] = 10 ** ((self.V2I_power_dB - self.V2V_channels_with_fastfading[i, receiver_j, i] + 2 * self.vehAntGain - self.vehNoiseFigure) / 10)
+                V2V_Interference[indexes[j, 0], indexes[j, 1]] += 10 ** ((self.V2I_power_dB - self.V2V_channels_with_fastfading[i, receiver_j, i] + 2 * self.vehAntGain - self.vehNoiseFigure) / 10)
 
                 #  V2V interference
                 for k in range(j + 1, len(indexes)):  # spectrum-sharing V2Vs
@@ -447,7 +447,7 @@ class Environ:
                 V2V_Signal[indexes[j, 0], indexes[j, 1]] = 10 ** ((self.V2V_power_dB_List[power_selection[indexes[j, 0], indexes[j, 1]]]
                                                                    - self.V2V_channels_with_fastfading[indexes[j][0], receiver_j, i] + 2 * self.vehAntGain - self.vehNoiseFigure) / 10)
                 # V2I links interference to V2V links
-                V2V_Interference[indexes[j, 0], indexes[j, 1]] = 10 ** ((self.V2I_power_dB - self.V2V_channels_with_fastfading[i, receiver_j, i] + 2 * self.vehAntGain - self.vehNoiseFigure) / 10)
+                V2V_Interference[indexes[j, 0], indexes[j, 1]] += 10 ** ((self.V2I_power_dB - self.V2V_channels_with_fastfading[i, receiver_j, i] + 2 * self.vehAntGain - self.vehNoiseFigure) / 10)
 
                 #  V2V interference
                 for k in range(j + 1, len(indexes)):  # spectrum-sharing V2Vs
@@ -468,7 +468,7 @@ class Environ:
         return V2I_Rate, V2V_Rate
 
     def Compute_Performance_Reward_Test_dpra(self, actions_power):
-        """ for random baseline computation """
+        """ for centralized-V2V and V2I-only baseline computation """
 
         actions = actions_power[:, :, 0]  # the channel_selection_part
         power_selection = actions_power[:, :, 1]  # power selection
@@ -497,7 +497,7 @@ class Environ:
                 V2V_Signal[indexes[j, 0], indexes[j, 1]] = 10 ** ((self.V2V_power_dB_List[power_selection[indexes[j, 0], indexes[j, 1]]]
                                                                    - self.V2V_channels_with_fastfading[indexes[j][0], receiver_j, i] + 2 * self.vehAntGain - self.vehNoiseFigure) / 10)
                 # V2I links interference to V2V links
-                V2V_Interference[indexes[j, 0], indexes[j, 1]] = 10 ** ((self.V2I_power_dB - self.V2V_channels_with_fastfading[i, receiver_j, i] + 2 * self.vehAntGain - self.vehNoiseFigure) / 10)
+                V2V_Interference[indexes[j, 0], indexes[j, 1]] += 10 ** ((self.V2I_power_dB - self.V2V_channels_with_fastfading[i, receiver_j, i] + 2 * self.vehAntGain - self.vehNoiseFigure) / 10)
 
                 #  V2V interference
                 for k in range(j + 1, len(indexes)):  # spectrum-sharing V2Vs
@@ -546,7 +546,7 @@ class Environ:
                 V2V_Signal[indexes[j, 0], indexes[j, 1]] = 10 ** ((self.V2V_power_dB_List[power_selection[indexes[j, 0], indexes[j, 1]]]
                                                                    - self.V2V_channels_with_fastfading[indexes[j][0], receiver_j, i] + 2 * self.vehAntGain - self.vehNoiseFigure) / 10)
                 # V2I links interference to V2V links
-                V2V_Interference[indexes[j, 0], indexes[j, 1]] = 10 ** ((self.V2I_power_dB - self.V2V_channels_with_fastfading[i, receiver_j, i] + 2 * self.vehAntGain - self.vehNoiseFigure) / 10)
+                V2V_Interference[indexes[j, 0], indexes[j, 1]] += 10 ** ((self.V2I_power_dB - self.V2V_channels_with_fastfading[i, receiver_j, i] + 2 * self.vehAntGain - self.vehNoiseFigure) / 10)
 
                 #  V2V interference
                 for k in range(j + 1, len(indexes)):  # spectrum-sharing V2Vs
