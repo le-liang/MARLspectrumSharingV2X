@@ -15,4 +15,7 @@ How to use the code:
   - Use of "Test" mode in "main_marl_train.py" is not recommended. 
 
 
-Please send all questions/inquires to lliang@gatech.edu.
+Please send all questions/inquires to lliang@seu.edu.cn.
+
+I'm now a Professor in Southeast University (SEU), Nanjing, China. Please drop me an email if you're interested in working with me. 
+Our research website: www.liang-seu.net
