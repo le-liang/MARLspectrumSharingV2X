@@ -2,6 +2,8 @@
 
 L. Liang, H. Ye, and G. Y. Li, "Spectrum sharing in vehicular networks based on multi-agent reinforcement learning," IEEE Journal on Selected Areas in Communications, vol. 37, no. 10, pp. 2282-2292, Oct. 2019. 
 
+%%% Notes: I'm now a Professor in Southeast University 东南大学, Nanjing, China. Please check out our group GitHub for more updates: https://github.com/lianggroup
+
 Trained and tested with Python 3.6 + TensorFlow 1.12.0. 
 
 How to use the code:
@@ -14,9 +16,4 @@ How to use the code:
   - Figures 6-7 show performance of an arbitrary episode (but with failed random baseline and successful MARL transmission). In fact, most of such episodes exhibit some interesting observations demonstrating multi-agent cooperation. Interpretation is up to the readers. 
   - Use of "Test" mode in "main_marl_train.py" is not recommended. 
 
-
 Please send all questions/inquires to lliang@seu.edu.cn.
-
-I'm now a Professor in Southeast University (SEU), Nanjing, China. Please drop me an email if you're interested in working with me. 
-
-Our research website: www.liang-seu.net
