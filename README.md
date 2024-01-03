@@ -1,8 +1,5 @@
 # Spectrum sharing in vehicular networks based on multi-agent reinforcement learning
 
-----
-Notes: I'm now a Professor in Southeast University 东南大学, Nanjing, China. Please check out our new GitHub page for more updates: https://github.com/lianggroup
----
 
 L. Liang, H. Ye, and G. Y. Li, "Spectrum sharing in vehicular networks based on multi-agent reinforcement learning," IEEE Journal on Selected Areas in Communications, vol. 37, no. 10, pp. 2282-2292, Oct. 2019. 
 
