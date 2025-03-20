@@ -1,7 +1,8 @@
 # Spectrum sharing in vehicular networks based on multi-agent reinforcement learning
 
-
 L. Liang, H. Ye, and G. Y. Li, "Spectrum sharing in vehicular networks based on multi-agent reinforcement learning," IEEE Journal on Selected Areas in Communications, vol. 37, no. 10, pp. 2282-2292, Oct. 2019. 
+
+## Kai Huang has released a more refined repo of this project, written in PyTorch, which runs much faster than this TensorFlow version. Please check it out here: https://github.com/huangkk99/MARLV2X
 
 Trained and tested with Python 3.6 + TensorFlow 1.12.0. 
 
@@ -17,5 +18,3 @@ How to use the code:
 
 Please send all questions/inquires to lliang@seu.edu.cn.
 
-Kai Huang has released a more refined repo of this project, written in PyTorch, which runs much faster than this TensorFlow version. Please check it out here:
-https://github.com/huangkk99/MARLV2X
