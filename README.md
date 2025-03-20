@@ -16,3 +16,6 @@ How to use the code:
   - Use of "Test" mode in "main_marl_train.py" is not recommended. 
 
 Please send all questions/inquires to lliang@seu.edu.cn.
+
+Kai Huang has released a more refined repo of this project, written in PyTorch, which runs much faster than this TensorFlow version. Please check it out here:
+https://github.com/huangkk99/MARLV2X
